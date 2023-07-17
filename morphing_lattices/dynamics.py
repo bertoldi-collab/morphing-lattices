@@ -17,6 +17,20 @@ def setup_dynamic_solver(
         rigid_bodies_points: List[jnp.ndarray] = [],
         constrained_DOFs_fn: Callable = lambda t, **kwargs: 0,
         control_params_fn: Callable = lambda t, control_params: control_params,):
+    """Sets up the dynamic solver for a lattice.
+
+    Args:
+        lattice (Lattice): Lattice object.
+        loaded_point_DOF_pairs (jnp.ndarray, optional): Array of shape (Any, 2) collecting the point-DOF pairs where the loading is applied. Defaults to jnp.array([]).
+        loading_fn (Callable, optional): Function of signature (state, t) -> loading. Defaults to lambda state, t: 0. It should return either a scalar or an array of shape (len(loaded_point_DOF_pairs),).
+        constrained_point_DOF_pairs (jnp.ndarray, optional): Array of shape (Any, 2) collecting the point-DOF pairs where the constraints are applied. Defaults to jnp.array([]).
+        rigid_bodies_points (List[jnp.ndarray], optional): List of arrays of shape (n_points_in_rigid_body, ) defining the points in each rigid body. Defaults to [].
+        constrained_DOFs_fn (Callable, optional): Function of signature (t, **kwargs) -> constrained_DOFs. Defaults to lambda t, **kwargs: 0. It should return either a scalar or an array of shape (len(constrained_point_DOF_pairs),).
+        control_params_fn (Callable, optional): Function of signature (t, control_params) -> control_params. Defaults to lambda t, control_params: control_params. It should return a ControlParams object. This is useful to implement time-dependent control parameters.
+
+    Returns:
+        Callable, Callable: solve_dynamics, rhs. The first is a function of signature (state0, timepoints, control_params) -> solution. The second is a function of signature (state, t, control_params) -> state_dot. The solution is an array of shape (len(timepoints), 2, n_points, 2), where axis 0 is time, axis 1 is state (displacement, velocity), axis 2 is point id, axis 3 is DOF.
+    """
 
     # Energy
     total_energy = build_strain_energy(lattice.connectivity)
@@ -67,12 +81,12 @@ def setup_dynamic_solver(
         """Solves the dynamics via `odeint`.
 
         Args:
-            state0 (jnp.ndarray): array of shape (2, n_points, 2) representing the initial conditions.
-            timepoints (jnp.ndarray): evaluation times.
-            control_params (ControlParams): control parameters.
+            state0(jnp.ndarray): array of shape(2, n_points, 2) representing the initial conditions.
+            timepoints(jnp.ndarray): evaluation times.
+            control_params(ControlParams): control parameters.
 
         Returns:
-            ndarray: Solution of the dynamics evaluated at times `timepoints`. Shape (n_timepoints, 2, n_points, 2), axis 0 is time, axis 1 is state (displacement, velocity), axis 2 is point id, axis 3 is DOF.
+            ndarray: Solution of the dynamics evaluated at times `timepoints`. Shape(n_timepoints, 2, n_points, 2), axis 0 is time, axis 1 is state(displacement, velocity), axis 2 is point id, axis 3 is DOF.
         """
 
         # Reduce state0, masses, and damping to the free DOFs
