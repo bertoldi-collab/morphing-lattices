@@ -1,6 +1,6 @@
 from typing import Callable, List
 import jax.numpy as jnp
-from morphing_lattices.geometry import points_centroid
+from morphing_lattices.geometry import DOFsInfo, points_centroid
 from morphing_lattices.structure import ControlParams
 
 
