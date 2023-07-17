@@ -1,2 +1,3 @@
 # Morphing lattices
-Shape morphing LCE lattices
+
+Simulation and design of shape morphing LCE lattices
