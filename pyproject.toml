@@ -7,9 +7,13 @@ license     = "MIT"
 readme      = "README.md"
 
 [tool.poetry.dependencies]
-python     = "^3.9"
-matplotlib = "^3.7.2"
-jax = "^0.4.13"
+python       = "^3.9"
+matplotlib   = "^3.7.2"
+jax          = "^0.4.13"
+jaxlib       = "^0.4.13"
+SciencePlots = "^2.1.0"
+ipykernel    = "^6.24.0"
+ipympl       = "0.9.1"
 
 [tool.poetry.group.dev.dependencies]
 pytest   = "^7.4.0"
