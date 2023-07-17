@@ -1,2 +1,2 @@
-# morphing-lattices
+# Morphing lattices
 Shape morphing LCE lattices
