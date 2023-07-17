@@ -105,3 +105,17 @@ def constrain_energy(energy_fn: Callable, constrained_kinematics: Callable):
         )
 
     return constrained_energy_fn
+
+
+def build_strain_fn(connectivity: jnp.ndarray):
+
+    def strain_fn(reference_points: jnp.ndarray, displacement: jnp.ndarray):
+        current_points = reference_points + displacement
+        reference_vectors = reference_points[connectivity[:, 1]] - reference_points[connectivity[:, 0]]
+        current_vectors = current_points[connectivity[:, 1]] - current_points[connectivity[:, 0]]
+        reference_lengths = jnp.linalg.norm(reference_vectors, axis=-1)
+        current_lengths = jnp.linalg.norm(current_vectors, axis=-1)
+        strain = (current_lengths - reference_lengths) / reference_lengths
+        return strain
+
+    return strain_fn
