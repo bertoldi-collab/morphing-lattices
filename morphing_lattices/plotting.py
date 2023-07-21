@@ -42,15 +42,7 @@ def plot_lattice(lattice: Lattice, displacement=None, xlim=None, ylim=None, titl
             ax.annotate(f"{id}", point)
 
     # xylim
-    x_ext = points[:, 0].max() - points[:, 0].min()
-    y_ext = points[:, 1].max() - points[:, 1].min()
-    if xlim is None:
-        ax.set_xlim(points[:, 0].min() - 0.05*x_ext, points[:, 0].max() + 0.05*x_ext)
-    else:
-        ax.set_xlim(*xlim)
-    if ylim is None:
-        ax.set_ylim(points[:, 1].min() - 0.05*y_ext, points[:, 1].max() + 0.05*y_ext)
-    else:
-        ax.set_ylim(*ylim)
+    _xlim, _ylim = lattice.get_xy_limits()
+    ax.set(xlim=_xlim if xlim is None else xlim, ylim=_ylim if ylim is None else ylim)
 
     return fig, ax
