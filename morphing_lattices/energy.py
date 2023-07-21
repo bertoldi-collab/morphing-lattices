@@ -19,8 +19,15 @@ def build_strain_energy(connectivity):
 
         # NOTE: If we want to include the change of cross-sectional area, we can add it here with a dedicated alpha_transverse.
         # From experiments: alpha_transverse ~ alpha_longitudinal.
+
+        # Linear
         return 0.5 * jnp.sum(
             young * area * reference_lengths * ((1+strain)/(1+thermal_strain) - 1)**2
         )
+        # # Neo-Hookean
+        # elastic_stretch = (1+strain)/(1+thermal_strain)
+        # return 0.5 * jnp.sum(
+        #     young / 3 * area * reference_lengths * (elastic_stretch**2 + 2*elastic_stretch**-1),
+        # )
 
     return strain_energy
