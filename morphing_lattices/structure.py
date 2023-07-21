@@ -24,3 +24,11 @@ class Lattice:
     def __post_init__(self):
         self.n_points = self.control_params.reference_points.shape[0]
         self.n_bonds = self.connectivity.shape[0]
+
+    def get_xy_limits(self, extra_x=0.05, extra_y=0.05):
+        points = self.control_params.reference_points
+        x_ext = points[:, 0].max() - points[:, 0].min()
+        y_ext = points[:, 1].max() - points[:, 1].min()
+        xlim = (points[:, 0].min() - extra_x*x_ext, points[:, 0].max() + extra_x*x_ext)
+        ylim = (points[:, 1].min() - extra_y*y_ext, points[:, 1].max() + extra_y*y_ext)
+        return xlim, ylim
