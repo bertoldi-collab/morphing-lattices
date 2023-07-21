@@ -8,7 +8,7 @@ from morphing_lattices.structure import Lattice
 import jax.numpy as jnp
 
 
-def plot_lattice(lattice: Lattice, displacement=None, xlim=None, ylim=None, title="Lattice", figsize=(5, 5), annotate=False, bond_values=None, label=None, fontsize=14, cmap="coolwarm", axis=True):
+def plot_lattice(lattice: Lattice, displacement=None, xlim=None, ylim=None, title="Lattice", figsize=(5, 5), annotate=False, bond_values=None, node_size=None, legend_label=None, fontsize=14, cmap="coolwarm", axis=True):
     points = lattice.control_params.reference_points if displacement is None else displacement + lattice.control_params.reference_points
     connectivity = lattice.connectivity
 
@@ -23,7 +23,7 @@ def plot_lattice(lattice: Lattice, displacement=None, xlim=None, ylim=None, titl
         ax.axis("off")
 
     # Plot nodes
-    ax.scatter(points[:, 0], points[:, 1], color="black", zorder=10)
+    ax.scatter(points[:, 0], points[:, 1], color="black", zorder=10, s=node_size)
     # Plot the bonds
     if bond_values is not None:
         # Color the bonds
@@ -35,7 +35,7 @@ def plot_lattice(lattice: Lattice, displacement=None, xlim=None, ylim=None, titl
         sm.set_array(bond_values)
         cb = fig.colorbar(sm, ax=ax, pad=0.04, aspect=25)
         cb.ax.tick_params(labelsize=0.8*fontsize)
-        cb.ax.set_ylabel(label if label is not None else "", fontsize=fontsize)
+        cb.ax.set_ylabel(legend_label if legend_label is not None else "", fontsize=fontsize)
     else:
         colors = None
     for i, pair in enumerate(connectivity):
@@ -54,7 +54,7 @@ def plot_lattice(lattice: Lattice, displacement=None, xlim=None, ylim=None, titl
     return fig, ax
 
 
-def generate_animation(lattice: Lattice, solution: jnp.ndarray, out_filename, frame_range=None, figsize=None, xlim=None, ylim=None, fps=20, dpi=200, title=None, x_label=None, y_label=None, legend_label=None, bond_values=None, bond_color=None, fontsize=14, cmap="coolwarm", axis=True):
+def generate_animation(lattice: Lattice, solution: jnp.ndarray, out_filename, frame_range=None, figsize=None, xlim=None, ylim=None, fps=20, dpi=200, title=None, x_label=None, y_label=None, legend_label=None, bond_values=None, bond_color=None, node_size=None, fontsize=14, cmap="coolwarm", axis=True):
 
     tick_size = 0.8*fontsize
     # Plot the lattice
@@ -74,7 +74,7 @@ def generate_animation(lattice: Lattice, solution: jnp.ndarray, out_filename, fr
     connectivity = lattice.connectivity
     points = lattice.control_params.reference_points + solution[0, 0]
     # Nodes
-    scatter_plot = ax.scatter(points[:, 0], points[:, 1], color="black", zorder=10)
+    scatter_plot = ax.scatter(points[:, 0], points[:, 1], color="black", zorder=10, s=node_size)
     # Bonds
     collection_bonds = LineCollection(points[connectivity], color="black", linewidth=2)
     ax.add_collection(collection_bonds)
