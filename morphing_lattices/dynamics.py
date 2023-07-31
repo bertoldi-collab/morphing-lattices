@@ -2,7 +2,7 @@ import jax.numpy as jnp
 from jax import grad, vmap, jacobian
 from jax.experimental.ode import odeint
 from typing import Callable, List
-from morphing_lattices.loading import build_loading
+from morphing_lattices.loading import build_global_loading, build_loading
 from morphing_lattices.structure import ControlParams, Lattice
 from morphing_lattices.energy import build_strain_energy
 from morphing_lattices.geometry import DOFsInfo, compute_inertia
@@ -29,7 +29,7 @@ def setup_dynamic_solver(
         control_params_fn (Callable, optional): Function of signature (t, control_params) -> control_params. Defaults to lambda t, control_params: control_params. It should return a ControlParams object. This is useful to implement time-dependent control parameters.
 
     Returns:
-        Callable, Callable: solve_dynamics, rhs. The first is a function of signature (state0, timepoints, control_params) -> solution. The second is a function of signature (state, t, control_params) -> state_dot. The solution is an array of shape (len(timepoints), 2, n_points, 2), where axis 0 is time, axis 1 is state (displacement, velocity), axis 2 is point id, axis 3 is DOF.
+        Callable, Callable: solve_dynamics, force_fn_global. The first is a function of signature (state0, timepoints, control_params) -> solution. The second is a function of signature (state, t, control_params) -> force_array. The solution is an array of shape (len(timepoints), 2, n_points, 2), where axis 0 is time, axis 1 is state (displacement, velocity), axis 2 is point id, axis 3 is DOF. The force_array is an array of shape (n_points, 2) representing the force on all the points.
     """
 
     # Energy
@@ -119,4 +119,27 @@ def setup_dynamic_solver(
 
         return solution
 
-    return solve_dynamics, rhs
+    # Functions to compute the global force on all the points (constraints are not needed here)
+    potential_force_global = grad(lambda x, *args, **kwargs: -total_energy(x, *args, **kwargs))
+    loading_fn_global = build_global_loading(
+        n_points=lattice.n_points,
+        loaded_point_DOF_pairs=loaded_point_DOF_pairs,
+        loading_fn=loading_fn,
+    )
+
+    def force_fn_global(state, t, control_params: ControlParams):
+        """Computes the global force on all the points.
+
+        Args:
+            state (jnp.ndarray): Array of shape (2, n_points, 2) representing the state of the system.
+            t (float): Time parameter.
+            control_params (ControlParams): control parameters at the initial time.
+
+        Returns:
+            jnp.ndarray: Array of shape (n_points, 2) representing the force on all the points.
+        """
+        _control_params = control_params_fn(t, control_params)
+        x, x_dot = state
+        return potential_force_global(x, _control_params) + loading_fn_global(state, t, _control_params.loading_params) - _control_params.damping*x_dot
+
+    return solve_dynamics, force_fn_global
