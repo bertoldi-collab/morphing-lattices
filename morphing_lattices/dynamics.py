@@ -83,7 +83,7 @@ def setup_dynamic_solver(
         Args:
             state0(jnp.ndarray): array of shape(2, n_points, 2) representing the initial conditions.
             timepoints(jnp.ndarray): evaluation times.
-            control_params(ControlParams): control parameters.
+            control_params(ControlParams): control parameters at the initial time.
 
         Returns:
             ndarray: Solution of the dynamics evaluated at times `timepoints`. Shape(n_timepoints, 2, n_points, 2), axis 0 is time, axis 1 is state(displacement, velocity), axis 2 is point id, axis 3 is DOF.
