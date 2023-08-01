@@ -39,3 +39,31 @@ def build_loading(
         return loading_vector
 
     return _loading_fn
+
+
+def build_global_loading(
+        n_points: int,
+        loaded_point_DOF_pairs: jnp.ndarray,
+        loading_fn: Callable,):
+    """Defines the global loading function (used for post-processing).
+
+    Args:
+        n_points (int): Number of points in the geometry.
+        loaded_point_DOF_pairs (jnp.ndarray): array of shape (Any, 2) where each row defines a pair of [point_id, DOF_id] where DOF_id is either 0, 1, or 2
+        loading_fn (Callable): Loading function. Output shape should either be scalar or match (len(loaded_point_DOF_pairs),).
+
+    Returns:
+        Callable: function with signature `loading_fn_global(state, t, loading_params)` -> ndarray of shape (n_points, 2) representing the global loading vector.
+    """
+
+    def _loading_fn(state, t, loading_params: Dict):
+
+        loading_vector = jnp.zeros((n_points, 2))
+        if len(loaded_point_DOF_pairs) != 0:
+            loading_vector = loading_vector.at[loaded_point_DOF_pairs[:, 0], loaded_point_DOF_pairs[:, 1]].set(
+                loading_fn(state, t, **loading_params)
+            )
+
+        return loading_vector
+
+    return _loading_fn
