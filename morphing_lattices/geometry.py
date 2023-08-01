@@ -149,4 +149,4 @@ def triangular_lattice_connectivity(n1: int, n2: int):
 
     connectivity = jnp.concatenate([horizontal_bonds_even, horizontal_bonds_odd,
                                     right_leaning_even, right_leaning_odd, left_leaning_even, left_leaning_odd])
-    return connectivity
+    return connectivity, horizontal_bonds_even, horizontal_bonds_odd, right_leaning_even, right_leaning_odd, left_leaning_even, left_leaning_odd
