@@ -8,7 +8,7 @@ from morphing_lattices.structure import Lattice
 import jax.numpy as jnp
 
 
-def plot_lattice(lattice: Lattice, displacement=None, xlim=None, ylim=None, title="Lattice", figsize=(5, 5), annotate=False, bond_values=None, node_size=None, legend_label=None, fontsize=14, cmap="coolwarm", axis=True):
+def plot_lattice(lattice: Lattice, displacement=None, xlim=None, ylim=None, title="Lattice", figsize=(5, 5), annotate=False, bond_values=None, LTNI_bond_indices = None, HTNI_bond_indices = None, node_size=None, legend_label=None, fontsize=14, cmap="coolwarm", axis=True):
     points = lattice.control_params.reference_points if displacement is None else displacement + lattice.control_params.reference_points
     connectivity = lattice.connectivity
 
@@ -39,7 +39,14 @@ def plot_lattice(lattice: Lattice, displacement=None, xlim=None, ylim=None, titl
     else:
         colors = None
     for i, pair in enumerate(connectivity):
-        ax.plot(*points[pair].T, lw=2, color="#2980b9" if colors is None else colors[i])
+        if LTNI_bond_indices is not None and HTNI_bond_indices is not None:
+            if i in LTNI_bond_indices:
+                ax.plot(*points[pair].T, lw=2, color='#FFD700' if colors is None else colors[i])
+            elif i in HTNI_bond_indices:
+                ax.plot(*points[pair].T, lw=2, color="#0343DF" if colors is None else colors[i])
+        
+        else:
+            ax.plot(*points[pair].T, lw=2, color="#2980b9" if colors is None else colors[i])
 
     if annotate:
         for i, pair in enumerate(connectivity):
