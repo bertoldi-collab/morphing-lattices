@@ -38,16 +38,27 @@ def plot_lattice(lattice: Lattice, displacement=None, xlim=None, ylim=None, titl
         cb.ax.set_ylabel(legend_label if legend_label is not None else "", fontsize=fontsize)
     else:
         colors = None
+
+    cntr_HTNI = 0
+    cntr_LTNI = 0
     for i, pair in enumerate(connectivity):
         if LTNI_bond_indices is not None and HTNI_bond_indices is not None:
             if i in LTNI_bond_indices:
-                ax.plot(*points[pair].T, lw=2, color='#FFD700' if colors is None else colors[i])
+                if cntr_LTNI == 0:
+                    ax.plot(*points[pair].T, lw=2, color='#069AF3' if colors is None else colors[i], label='LTNI')
+                    cntr_LTNI = cntr_LTNI+1
+                else:
+                    ax.plot(*points[pair].T, lw=2, color='#069AF3' if colors is None else colors[i])
             elif i in HTNI_bond_indices:
-                ax.plot(*points[pair].T, lw=2, color="#0343DF" if colors is None else colors[i])
+                if cntr_HTNI == 0:
+                    ax.plot(*points[pair].T, lw=2, color="#F97306" if colors is None else colors[i], label='HTNI')
+                    cntr_HTNI = cntr_HTNI+1
+                else:
+                    ax.plot(*points[pair].T, lw=2, color="#F97306" if colors is None else colors[i])
         
         else:
             ax.plot(*points[pair].T, lw=2, color="#2980b9" if colors is None else colors[i])
-
+    ax.legend()
     if annotate:
         for i, pair in enumerate(connectivity):
             ax.annotate(f"{i}", points[pair].mean(axis=0), color="r")

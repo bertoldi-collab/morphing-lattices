@@ -24,10 +24,5 @@ def build_strain_energy(connectivity):
         return 0.5 * jnp.sum(
             young * area * reference_lengths * ((1+strain)/(1+thermal_strain) - 1)**2
         )
-        # # Neo-Hookean
-        # elastic_stretch = (1+strain)/(1+thermal_strain)
-        # return 0.5 * jnp.sum(
-        #     young / 3 * area * reference_lengths * (elastic_stretch**2 + 2*elastic_stretch**-1),
-        # )
-
+    
     return strain_energy
