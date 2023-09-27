@@ -5,6 +5,7 @@ import matplotlib
 from matplotlib.collections import LineCollection
 import matplotlib.pyplot as plt
 from morphing_lattices.structure import Lattice
+from morphing_lattices.kinematics import rotation_matrix
 import jax.numpy as jnp
 
 
@@ -72,7 +73,7 @@ def plot_lattice(lattice: Lattice, displacement=None, xlim=None, ylim=None, titl
     return fig, ax
 
 
-def generate_animation(lattice: Lattice, solution: jnp.ndarray, out_filename, frame_range=None, figsize=None, xlim=None, ylim=None, fps=20, dpi=200, title=None, x_label=None, y_label=None, legend_label=None, bond_values=None, bond_color=None, node_size=None, fontsize=14, cmap="coolwarm", axis=True):
+def generate_animation(lattice: Lattice, solution: jnp.ndarray, lattice_number, out_filename, rotated_points=False, frame_range=None, figsize=None, xlim=None, ylim=None, fps=20, dpi=200, title=None, x_label=None, y_label=None, legend_label=None, bond_values=None, bond_color=None, node_size=None, fontsize=14, cmap="coolwarm", axis=True):
 
     tick_size = 0.8*fontsize
     # Plot the lattice
@@ -87,12 +88,23 @@ def generate_animation(lattice: Lattice, solution: jnp.ndarray, out_filename, fr
     ax.tick_params(labelsize=tick_size)
     if not axis:
         ax.axis("off")
+    ax.add_patch(matplotlib.patches.Rectangle((xlim[0], ylim[0]+0.9*(ylim[1] - ylim[0])), 0.0*(xlim[1] - xlim[0]), 0.0*(ylim[1] - ylim[0]), color='#F97306', label='HTNI'))
+    ax.add_patch(matplotlib.patches.Rectangle((xlim[0], ylim[0]+0.8*(ylim[1] - ylim[0])), 0.0*(xlim[1] - xlim[0]), 0.0*(ylim[1] - ylim[0]), color='#069AF3', label='LTNI'))
+    ax.legend()
 
     # First frame
     connectivity = lattice.connectivity
-    points = lattice.control_params.reference_points + solution[0, 0]
-    # Nodes
-    scatter_plot = ax.scatter(points[:, 0], points[:, 1], color="black", zorder=10, s=node_size)
+    if rotated_points and lattice_number==10:
+        points = jnp.dot(rotation_matrix(-jnp.pi/2), (lattice.control_params.reference_points + solution[0, 0]).T).T
+        points0 = points.copy()
+        points = points.at[:, 1].set(points[:, 1]-points0[9, 1])
+        # Nodes
+        scatter_plot = ax.scatter(points[:, 0], points[:, 1], color="black", zorder=10, s=node_size)
+    else:
+        points = lattice.control_params.reference_points + solution[0, 0]
+        # Nodes
+        scatter_plot = ax.scatter(points[:, 0], points[:, 1], color="black", zorder=10, s=node_size)
+    
     # Bonds
     collection_bonds = LineCollection(points[connectivity], color="black", linewidth=2)
     ax.add_collection(collection_bonds)
@@ -120,8 +132,13 @@ def generate_animation(lattice: Lattice, solution: jnp.ndarray, out_filename, fr
 
     def animate(i):
         # Update nodes
-        points = lattice.control_params.reference_points + solution[i, 0]
-        scatter_plot.set_offsets(points)
+        if rotated_points and lattice_number==10:
+            points = jnp.dot(rotation_matrix(-jnp.pi/2), (lattice.control_params.reference_points + solution[i, 0]).T).T
+            points = points.at[:, 1].set(points[:, 1] - points0[9, 1])
+            scatter_plot.set_offsets(points)
+        else:
+            points = lattice.control_params.reference_points + solution[i, 0]
+            scatter_plot.set_offsets(points)
         # Update bonds
         collection_bonds.set_segments(points[connectivity])
         # Update bond values
