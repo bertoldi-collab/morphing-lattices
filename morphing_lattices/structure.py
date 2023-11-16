@@ -15,6 +15,7 @@ class ControlParams(NamedTuple):
         masses (jnp.ndarray): Array of shape (n_points, 2) representing the mass of each point.
         loading_params (Dict): Loading parameters to be passed to loading_fn. Default: {}.
         constraint_params (Dict): Constraint parameters to be passed to constraint_fn. Default: {}.
+        phase (Optional[jnp.ndarray]): Array of shape (n_bonds,) representing the phase of each struts (i.e. material type). Default: None. This is used to interpolate between two materials and optimize the phase.
     """
 
     reference_points: jnp.ndarray
@@ -25,6 +26,7 @@ class ControlParams(NamedTuple):
     masses: jnp.ndarray
     loading_params: Dict = dict()
     constraint_params: Dict = dict()
+    phase: Optional[jnp.ndarray] = None
 
 
 @dataclass
