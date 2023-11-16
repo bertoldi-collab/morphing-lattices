@@ -34,7 +34,7 @@ class Lattice:
     Attrs:
         connectivity (jnp.ndarray): Array of shape (n_bonds, 2) representing the connectivity of the lattice.
         control_params (ControlParams): Parameters that define the lattice structure and can be optimized.
-        solution (jnp.ndarray): Array of shape (n_timepoints, 2, n_points, 2) representing the nodal positions of the lattice. Default: None.
+        solution (jnp.ndarray): Array of shape (n_timepoints, 2, n_points, 2) representing the displacement and velocity of each point at each timepoint. Default: None.
     """
 
     connectivity: jnp.ndarray
