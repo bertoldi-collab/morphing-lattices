@@ -14,6 +14,7 @@ matplotlib = "^3.7.2"
 ipykernel  = "^6.24.0"
 ipympl     = "^0.9.3"
 pandas = "^2.0.3"
+nlopt = "^2.7.1"
 
 [tool.poetry.group.dev.dependencies]
 pytest   = "^7.4.0"
