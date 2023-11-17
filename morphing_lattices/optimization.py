@@ -166,6 +166,8 @@ class OptimizationProblem:
             lower_bound=0.,
             upper_bound=1.,):
 
+        # TODO: Figure out wether or not we need filering
+
         # Make sure objective_fn is set up
         if not self.is_setup:
             self.setup_objective()
