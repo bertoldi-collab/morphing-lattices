@@ -59,7 +59,8 @@ def plot_lattice(lattice: Lattice, displacement=None, xlim=None, ylim=None, titl
         
         else:
             ax.plot(*points[pair].T, lw=2, color="#2980b9" if colors is None else colors[i])
-    ax.legend()
+    if LTNI_bond_indices is not None and HTNI_bond_indices is not None:
+        ax.legend()
     if annotate:
         for i, pair in enumerate(connectivity):
             ax.annotate(f"{i}", points[pair].mean(axis=0), color="r")
