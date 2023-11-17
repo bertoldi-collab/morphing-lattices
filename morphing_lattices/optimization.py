@@ -16,6 +16,14 @@ def material_interpolation(phase, value_1, value_2, p=3):
 @dataclass
 class ForwardProblem:
     """
+    Forward problem for SIMP-based optimization of shape morphing LCE lattices.
+
+    Attrs:
+        lattice (Lattice): Lattice structure
+        simulation_time (float): Simulation time
+        n_timepoints (int): Number of timepoints
+        is_setup (Optional[bool]): Flag indicating that solve method is not available. It needs to be set up by calling self.setup(). Default: False.
+        name (str): Problem name. Default: "shape_morphing".
     """
 
     # Lattice structure
@@ -97,6 +105,18 @@ class ForwardProblem:
 @dataclass
 class OptimizationProblem:
     """
+    Optimization problem for SIMP-based optimization of shape morphing LCE lattices.
+
+    Attrs:
+        forward_problem (ForwardProblem): Forward problem
+        target_points (jnp.ndarray): Array of shape (n_target_points, 2) representing the target points.
+        target_points_ids (jnp.ndarray): Array of shape (n_target_points,) representing the target points ids.
+        objective_values (Optional[List[Any]]): List of objective values. Default: None.
+        design_values (Optional[List[Any]]): List of design values. Default: None.
+        best_response (Optional[jnp.ndarray]): Array of shape (n_timepoints, 2, n_points, 2) representing the displacement and velocity of each point at each timepoint for the best design. Default: None.
+        best_control_params (Optional[ControlParams]): Parameters that define the best lattice structure. Default: None.
+        name (str): Problem name. Default: ForwardProblem.name.
+        is_setup (Optional[bool]): Flag indicating that objective_fn method is not available. It needs to be set up by calling self.setup_objective(). Default: False.
     """
 
     forward_problem: ForwardProblem
