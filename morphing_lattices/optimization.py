@@ -129,7 +129,7 @@ class OptimizationProblem:
             solution, control_params = self.forward_problem.solve(phase)
             # TODO: Implement distance from target shape
             # TODO: Think about how to specify two target shapes
-            # NOTE: Do we want to try a scale invariant distance?
+            # NOTE: Do we want to try a scale invariant distance? I think we need it actually.
             # NOTE: As a test, we can try to minimize the distance from the final configuration
             final_configuration = control_params.reference_points + \
                 solution[-1, 0]
