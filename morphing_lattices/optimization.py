@@ -104,43 +104,39 @@ class ForwardProblem:
         return ForwardProblem(**dataclasses.asdict(self))
 
 
-def scale_points(current_configuration=None, target_points_ids=None, target_points=None):
+def scale_points(points):
     """
-    Scale the geometry such that the line connecting the target points has a length = 1
+    Scale the points such that the length of the curve connecting the points is 1
 
-    Variables:
-        current_configuration (jnp.ndarray): Array of shape (n_points, 2) representing the positions of all of the points
-        target_points_ids (jnp.ndarray): Array of shape (n_target_points,) representing the target points ids.
-        target_points (jnp.ndarray): Array of shape (n_target_points, 2) representing the target points
-    """
+    Attrs:
+        points (jnp.ndarray): Array of shape (n_points, 2) representing the points of the curve.
 
-    if current_configuration is not None and target_points_ids is not None:
-        current_points = current_configuration[target_points_ids]
-        current_points_length = jnp.sum(jnp.sqrt(jnp.diff(current_points[:, 0])**2 + jnp.diff(current_points[:, 1])**2)) # length of line connecting target_point_ids
-        scaled_lattice = current_configuration/current_points_length # scale lattice such that line connecting target point ids has a length = 1
-        scaled_target_points = None
-
-    if target_points is not None:
-        target_points_length = jnp.sum(jnp.sqrt(jnp.diff(target_points[:, 0])**2 + jnp.diff(target_points[:, 1])**2)) # length of line connecting target_point_ids
-        scaled_target_points = target_points/target_points_length # scale target_points such that line connecting target point ids has a length = 1
-        scaled_lattice = None
-
-    return scaled_lattice, scaled_target_points
-
-def shift_points(current_configuration, target_points_ids, target_points):
-    """
-    Shift target_points and current_configuration such that both are centered at zero
-
-    Variables:
-        current_configuration (jnp.ndarray): Array of shape (n_points, 2) representing the positions of all of the points
-        target_points_ids (jnp.ndarray): Array of shape (n_target_points,) representing the target points ids.
-        target_points (jnp.ndarray): Array of shape (n_target_points, 2) representing the target points
+    Returns:
+        scaled_points (jnp.ndarray): Array of shape (n_points, 2) representing the scaled points of the curve.
     """
 
-    shifted_current_configuration = current_configuration - current_configuration[target_points_ids[(len(target_points_ids)//2)], :]
-    shifted_target_points = target_points - target_points[(len(target_points_ids)//2), :]
+    # calculate the length of the curve connecting the points
+    curve_length = jnp.linalg.norm(jnp.diff(points, axis=0), axis=1).sum()
+    # scale the points such that the length of the curve is 1
+    scaled_points = points/curve_length
 
-    return shifted_current_configuration, shifted_target_points
+    return scaled_points
+
+
+def shift_points(points):
+    """
+    Shift points such that the middle point is at the origin.
+
+    Attrs:
+        points (jnp.ndarray): Array of shape (n_points, 2) representing the points of the curve.
+
+    Returns:
+        shiftted_points (jnp.ndarray): Array of shape (n_points, 2) representing the shifted points of the curve.
+    """
+
+    shiftted_points = points - points[len(points)//2]
+
+    return shiftted_points
 
 
 @dataclass
@@ -192,12 +188,14 @@ class OptimizationProblem:
         # Make sure forward solvers are set up
         assert self.forward_problem.is_setup, "Forward problem is not set up. Call self.forward_problem.setup() first."
 
-        # Scale target points
-        _, scaled_target1_points = scale_points(target_points=self.target1_points)
-        _, scaled_target2_points = scale_points(target_points=self.target2_points)
+        # Scale and center target points
+        scaled_target1_points = shift_points(scale_points(self.target1_points))
+        scaled_target2_points = shift_points(scale_points(self.target2_points))
 
-        target1_temperature_timepoint = jnp.argmin(jnp.abs(self.forward_problem.temperature_fn(self.forward_problem.timepoints) - self.target1_temperature))
-        target2_temperature_timepoint = jnp.argmin(jnp.abs(self.forward_problem.temperature_fn(self.forward_problem.timepoints) - self.target2_temperature))
+        target1_temperature_timepoint = jnp.argmin(jnp.abs(self.forward_problem.temperature_fn(
+            self.forward_problem.timepoints) - self.target1_temperature))
+        target2_temperature_timepoint = jnp.argmin(jnp.abs(self.forward_problem.temperature_fn(
+            self.forward_problem.timepoints) - self.target2_temperature))
 
         def distance_from_target_shape(phase: jnp.ndarray):
 
@@ -205,19 +203,26 @@ class OptimizationProblem:
             solution, control_params = self.forward_problem.solve(phase)
 
             # Get current configurations
-            shape1_configuration = control_params.reference_points + solution[target1_temperature_timepoint, 0]
-            shape2_configuration = control_params.reference_points + solution[target2_temperature_timepoint, 0]
+            shape1_configuration = control_params.reference_points + \
+                solution[target1_temperature_timepoint, 0]
+            shape2_configuration = control_params.reference_points + \
+                solution[target2_temperature_timepoint, 0]
 
-            # Scale current configurations
-            scaled_shape1_configuration, _ = scale_points(current_configuration=shape1_configuration, target_points_ids=self.target_points_ids)
-            scaled_shape2_configuration, _ = scale_points(current_configuration=shape2_configuration, target_points_ids=self.target_points_ids)
+            # Scale and center current configurations
+            scaled_shape1_configuration = shift_points(
+                scale_points(shape1_configuration[self.target_points_ids])
+            )
+            scaled_shape2_configuration = shift_points(
+                scale_points(shape2_configuration[self.target_points_ids])
+            )
 
-            shifted_shape1_configuration, shifted_target1_points = shift_points(scaled_shape1_configuration, self.target_points_ids, scaled_target1_points)
-            shifted_shape2_configuration, shifted_target2_points = shift_points(scaled_shape2_configuration, self.target_points_ids, scaled_target2_points)
-            
             # Calculate the difference
-            shape1_diff = self.weights[0] * jnp.sum((shifted_shape1_configuration[self.target_points_ids] - shifted_target1_points)**2)
-            shape2_diff = self.weights[1] * jnp.sum((shifted_shape2_configuration[self.target_points_ids] - shifted_target2_points)**2)
+            shape1_diff = self.weights[0] * jnp.sum(
+                (scaled_shape1_configuration - scaled_target1_points)**2
+            )
+            shape2_diff = self.weights[1] * jnp.sum(
+                (scaled_shape2_configuration - scaled_target2_points)**2
+            )
 
             return shape1_diff+shape2_diff
 
