@@ -74,7 +74,7 @@ def plot_lattice(lattice: Lattice, displacement=None, xlim=None, ylim=None, titl
     return fig, ax
 
 
-def generate_animation(lattice: Lattice, solution: jnp.ndarray, lattice_number, out_filename, rotated_points=False, frame_range=None, figsize=None, xlim=None, ylim=None, fps=20, dpi=200, title=None, x_label=None, y_label=None, legend_label=None, bond_values=None, bond_color=None, node_size=None, fontsize=14, cmap="coolwarm", axis=True):
+def generate_animation(lattice: Lattice, solution: jnp.ndarray, lattice_number=None, out_filename=None, rotated_points=False, frame_range=None, figsize=None, xlim=None, ylim=None, fps=20, dpi=200, title=None, x_label=None, y_label=None, legend_label=None, bond_values=None, bond_color=None, node_size=None, fontsize=14, cmap="coolwarm", axis=True):
 
     tick_size = 0.8*fontsize
     # Plot the lattice
@@ -89,9 +89,11 @@ def generate_animation(lattice: Lattice, solution: jnp.ndarray, lattice_number, 
     ax.tick_params(labelsize=tick_size)
     if not axis:
         ax.axis("off")
-    ax.add_patch(matplotlib.patches.Rectangle((xlim[0], ylim[0]+0.9*(ylim[1] - ylim[0])), 0.0*(xlim[1] - xlim[0]), 0.0*(ylim[1] - ylim[0]), color='#F97306', label='HTNI'))
-    ax.add_patch(matplotlib.patches.Rectangle((xlim[0], ylim[0]+0.8*(ylim[1] - ylim[0])), 0.0*(xlim[1] - xlim[0]), 0.0*(ylim[1] - ylim[0]), color='#069AF3', label='LTNI'))
-    ax.legend()
+    
+    if lattice_number is not None:
+        ax.add_patch(matplotlib.patches.Rectangle((xlim[0], ylim[0]+0.9*(ylim[1] - ylim[0])), 0.0*(xlim[1] - xlim[0]), 0.0*(ylim[1] - ylim[0]), color='#F97306', label='HTNI'))
+        ax.add_patch(matplotlib.patches.Rectangle((xlim[0], ylim[0]+0.8*(ylim[1] - ylim[0])), 0.0*(xlim[1] - xlim[0]), 0.0*(ylim[1] - ylim[0]), color='#069AF3', label='LTNI'))
+        ax.legend()
 
     # First frame
     connectivity = lattice.connectivity

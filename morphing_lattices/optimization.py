@@ -39,7 +39,7 @@ class ForwardProblem:
     # Problem name
     name: str = "shape_morphing"
 
-    def setup(self, young_1_fn: Callable, young_2_fn: Callable, thermal_strain_1_fn: Callable, thermal_strain_2_fn: Callable):
+    def setup(self, young_1_fn: Callable, young_2_fn: Callable, thermal_strain_1_fn: Callable, thermal_strain_2_fn: Callable, temperature_fn: Callable):
         """
         Set up forward solver.
         """
@@ -90,6 +90,8 @@ class ForwardProblem:
 
         self.solve = forward
         self.control_params_fn = control_params_fn
+        self.temperature_fn = temperature_fn
+        self.timepoints = timepoints
         self.is_setup = True
 
     @staticmethod
@@ -102,6 +104,45 @@ class ForwardProblem:
         return ForwardProblem(**dataclasses.asdict(self))
 
 
+def scale_points(current_configuration=None, target_points_ids=None, target_points=None):
+    """
+    Scale the geometry such that the line connecting the target points has a length = 1
+
+    Variables:
+        current_configuration (jnp.ndarray): Array of shape (n_points, 2) representing the positions of all of the points
+        target_points_ids (jnp.ndarray): Array of shape (n_target_points,) representing the target points ids.
+        target_points (jnp.ndarray): Array of shape (n_target_points, 2) representing the target points
+    """
+
+    if current_configuration is not None and target_points_ids is not None:
+        current_points = current_configuration[target_points_ids]
+        current_points_length = jnp.sum(jnp.sqrt(jnp.diff(current_points[:, 0])**2 + jnp.diff(current_points[:, 1])**2)) # length of line connecting target_point_ids
+        scaled_lattice = current_configuration/current_points_length # scale lattice such that line connecting target point ids has a length = 1
+        scaled_target_points = None
+
+    if target_points is not None:
+        target_points_length = jnp.sum(jnp.sqrt(jnp.diff(target_points[:, 0])**2 + jnp.diff(target_points[:, 1])**2)) # length of line connecting target_point_ids
+        scaled_target_points = target_points/target_points_length # scale target_points such that line connecting target point ids has a length = 1
+        scaled_lattice = None
+
+    return scaled_lattice, scaled_target_points
+
+def shift_points(current_configuration, target_points_ids, target_points):
+    """
+    Shift target_points and current_configuration such that both are centered at zero
+
+    Variables:
+        current_configuration (jnp.ndarray): Array of shape (n_points, 2) representing the positions of all of the points
+        target_points_ids (jnp.ndarray): Array of shape (n_target_points,) representing the target points ids.
+        target_points (jnp.ndarray): Array of shape (n_target_points, 2) representing the target points
+    """
+
+    shifted_current_configuration = current_configuration - current_configuration[target_points_ids[(len(target_points_ids)//2)], :]
+    shifted_target_points = target_points - target_points[(len(target_points_ids)//2), :]
+
+    return shifted_current_configuration, shifted_target_points
+
+
 @dataclass
 class OptimizationProblem:
     """
@@ -109,8 +150,12 @@ class OptimizationProblem:
 
     Attrs:
         forward_problem (ForwardProblem): Forward problem
-        target_points (jnp.ndarray): Array of shape (n_target_points, 2) representing the target points.
+        target1_points (jnp.ndarray): Array of shape (n_target_points, 2) representing the target1 points.
+        target2_points (jnp.ndarray): Array of shape (n_target_points, 2) representing the target2 points.
+        target1_temperature (float): Temperature at which optimization for target1_points occurs
+        target2_temperature (float): Temperature at which optimization for target2_points occurs
         target_points_ids (jnp.ndarray): Array of shape (n_target_points,) representing the target points ids.
+        weights (jnp.ndarray): Array of shape (2,) representing the weights applied to each target shape objective value
         objective_values (Optional[List[Any]]): List of objective values. Default: None.
         design_values (Optional[List[Any]]): List of design values. Default: None.
         best_response (Optional[jnp.ndarray]): Array of shape (n_timepoints, 2, n_points, 2) representing the displacement and velocity of each point at each timepoint for the best design. Default: None.
@@ -120,8 +165,12 @@ class OptimizationProblem:
     """
 
     forward_problem: ForwardProblem
-    target_points: jnp.ndarray
+    target1_points: jnp.ndarray
+    target2_points: jnp.ndarray
+    target1_temperature: float
+    target2_temperature: float
     target_points_ids: jnp.ndarray
+    weights: jnp.ndarray = jnp.array([0.5, 0.5])
     objective_values: Optional[List[Any]] = None
     design_values: Optional[List[Any]] = None
     best_response: Optional[jnp.ndarray] = None
@@ -143,18 +192,34 @@ class OptimizationProblem:
         # Make sure forward solvers are set up
         assert self.forward_problem.is_setup, "Forward problem is not set up. Call self.forward_problem.setup() first."
 
+        # Scale target points
+        _, scaled_target1_points = scale_points(target_points=self.target1_points)
+        _, scaled_target2_points = scale_points(target_points=self.target2_points)
+
+        target1_temperature_timepoint = jnp.argmin(jnp.abs(self.forward_problem.temperature_fn(self.forward_problem.timepoints) - self.target1_temperature))
+        target2_temperature_timepoint = jnp.argmin(jnp.abs(self.forward_problem.temperature_fn(self.forward_problem.timepoints) - self.target2_temperature))
+
         def distance_from_target_shape(phase: jnp.ndarray):
 
             # Solve forward
             solution, control_params = self.forward_problem.solve(phase)
-            # TODO: Implement distance from target shape
-            # TODO: Think about how to specify two target shapes
-            # NOTE: Do we want to try a scale invariant distance? I think we need it actually.
-            # NOTE: As a test, we can try to minimize the distance from the final configuration
-            final_configuration = control_params.reference_points + \
-                solution[-1, 0]
 
-            return jnp.sum((final_configuration[self.target_points_ids] - self.target_points)**2)
+            # Get current configurations
+            shape1_configuration = control_params.reference_points + solution[target1_temperature_timepoint, 0]
+            shape2_configuration = control_params.reference_points + solution[target2_temperature_timepoint, 0]
+
+            # Scale current configurations
+            scaled_shape1_configuration, _ = scale_points(current_configuration=shape1_configuration, target_points_ids=self.target_points_ids)
+            scaled_shape2_configuration, _ = scale_points(current_configuration=shape2_configuration, target_points_ids=self.target_points_ids)
+
+            shifted_shape1_configuration, shifted_target1_points = shift_points(scaled_shape1_configuration, self.target_points_ids, scaled_target1_points)
+            shifted_shape2_configuration, shifted_target2_points = shift_points(scaled_shape2_configuration, self.target_points_ids, scaled_target2_points)
+            
+            # Calculate the difference
+            shape1_diff = self.weights[0] * jnp.sum((shifted_shape1_configuration[self.target_points_ids] - shifted_target1_points)**2)
+            shape2_diff = self.weights[1] * jnp.sum((shifted_shape2_configuration[self.target_points_ids] - shifted_target2_points)**2)
+
+            return shape1_diff+shape2_diff
 
         self.objective_fn = distance_from_target_shape
         self.is_setup = True
@@ -165,8 +230,6 @@ class OptimizationProblem:
             max_time: Optional[int] = None,
             lower_bound=0.,
             upper_bound=1.,):
-
-        # TODO: Figure out wether or not we need filering
 
         # Make sure objective_fn is set up
         if not self.is_setup:
