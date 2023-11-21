@@ -259,7 +259,7 @@ class OptimizationProblem:
             return shape1_diff+shape2_diff
 
         self.objective_fn = distance_from_target_shapes
-        self.objective_fn_individual = distances_from_target_shapes
+        self.objective_fn_individual = jit(distances_from_target_shapes)
         self.is_setup = True
 
     def run_optimization_nlopt(
