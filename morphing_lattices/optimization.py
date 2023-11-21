@@ -220,10 +220,10 @@ class OptimizationProblem:
             )
 
             # Calculate the difference
-            shape1_diff = self.weights[0] * jnp.sum(
+            shape1_diff = jnp.sum(
                 (scaled_shape1_configuration - scaled_target1_points)**2
             )**0.5
-            shape2_diff = self.weights[1] * jnp.sum(
+            shape2_diff = jnp.sum(
                 (scaled_shape2_configuration - scaled_target2_points)**2
             )**0.5
 
