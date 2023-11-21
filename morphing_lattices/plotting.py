@@ -3,13 +3,14 @@ import matplotlib.animation as animation
 from matplotlib import cm
 import matplotlib
 from matplotlib.collections import LineCollection
+from matplotlib.lines import Line2D
 import matplotlib.pyplot as plt
 from morphing_lattices.structure import Lattice
 from morphing_lattices.kinematics import rotation_matrix
 import jax.numpy as jnp
 
 
-def plot_lattice(lattice: Lattice, displacement=None, xlim=None, ylim=None, title="Lattice", x_label=None, y_label=None, figsize=(5, 5), annotate=False, bond_values=None, LTNI_bond_indices=None, HTNI_bond_indices=None, node_size=None, legend_label=None, fontsize=14, cmap="coolwarm", axis=True):
+def plot_lattice(lattice: Lattice, displacement=None, xlim=None, ylim=None, title="Lattice", x_label=None, y_label=None, figsize=(5, 5), annotate=False, bond_values=None, bond_color=None, legend_labels=None, legend_colors=None, LTNI_bond_indices=None, HTNI_bond_indices=None, node_size=None, legend_label=None, fontsize=14, cmap="coolwarm", axis=True):
     points = lattice.control_params.reference_points if displacement is None else displacement + \
         lattice.control_params.reference_points
     connectivity = lattice.connectivity
@@ -43,12 +44,12 @@ def plot_lattice(lattice: Lattice, displacement=None, xlim=None, ylim=None, titl
         cb.ax.set_ylabel(
             legend_label if legend_label is not None else "", fontsize=fontsize)
     else:
-        colors = None
+        colors = bond_color if bond_color is not None else "#2980b9"
 
     cntr_HTNI = 0
     cntr_LTNI = 0
-    for i, pair in enumerate(connectivity):
-        if LTNI_bond_indices is not None and HTNI_bond_indices is not None:
+    if LTNI_bond_indices is not None and HTNI_bond_indices is not None:
+        for i, pair in enumerate(connectivity):
             if i in LTNI_bond_indices:
                 if cntr_LTNI == 0:
                     ax.plot(
@@ -66,11 +67,18 @@ def plot_lattice(lattice: Lattice, displacement=None, xlim=None, ylim=None, titl
                     ax.plot(
                         *points[pair].T, lw=2, color="#F97306" if colors is None else colors[i])
 
-        else:
-            ax.plot(*points[pair].T, lw=2,
-                    color="#2980b9" if colors is None else colors[i])
-    if LTNI_bond_indices is not None and HTNI_bond_indices is not None:
         ax.legend()
+    else:
+        collection_bonds = LineCollection(
+            points[connectivity], color=colors, linewidth=2)
+        ax.add_collection(collection_bonds)
+        # Add legend
+        if legend_labels is not None and legend_colors is not None:
+            custom_lines = [Line2D([0], [0], color=legend_colors[i], lw=2)
+                            for i in range(len(legend_labels))]
+            ax.legend(custom_lines, legend_labels,
+                      fontsize=fontsize, loc="upper right")
+
     if annotate:
         for i, pair in enumerate(connectivity):
             ax.annotate(f"{i}", points[pair].mean(axis=0), color="r")
@@ -85,7 +93,7 @@ def plot_lattice(lattice: Lattice, displacement=None, xlim=None, ylim=None, titl
     return fig, ax
 
 
-def generate_animation(lattice: Lattice, solution: jnp.ndarray, lattice_number=None, out_filename=None, rotated_points=False, frame_range=None, figsize=None, xlim=None, ylim=None, fps=20, dpi=200, title=None, x_label=None, y_label=None, legend_label=None, bond_values=None, bond_color=None, node_size=None, fontsize=14, cmap="coolwarm", axis=True):
+def generate_animation(lattice: Lattice, solution: jnp.ndarray, lattice_number=None, out_filename=None, rotated_points=False, frame_range=None, figsize=None, xlim=None, ylim=None, fps=20, dpi=200, title=None, x_label=None, y_label=None, legend_label=None, bond_values=None, bond_color=None, legend_labels=None, legend_colors=None, node_size=None, fontsize=14, cmap="coolwarm", axis=True):
 
     tick_size = 0.8*fontsize
     # Plot the lattice
@@ -150,6 +158,13 @@ def generate_animation(lattice: Lattice, solution: jnp.ndarray, lattice_number=N
     _xlim, _ylim = lattice.get_xy_limits()
     ax.set(xlim=_xlim if xlim is None else xlim,
            ylim=_ylim if ylim is None else ylim)
+
+    # Add legend
+    if legend_labels is not None and legend_colors is not None:
+        custom_lines = [Line2D([0], [0], color=legend_colors[i], lw=2)
+                        for i in range(len(legend_labels))]
+        ax.legend(custom_lines, legend_labels,
+                  fontsize=fontsize, loc="upper right")
 
     def animate(i):
         # Update nodes
