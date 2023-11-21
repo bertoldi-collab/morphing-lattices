@@ -26,7 +26,7 @@ config.update("jax_enable_x64", True)  # enable float64 type
 
 def run_optimization(weights: jnp.ndarray):
 
-# ## Import experimental material params
+    # ## Import experimental material params
 
     exp_actuation_strain = pd.read_csv(
         'exp/mechanical_data/20230512_HTNI_LTNI_actuationstrains_highgranularityTemp3355.csv'
@@ -170,7 +170,7 @@ def run_optimization(weights: jnp.ndarray):
         center[1] + n1*spacing/2*jnp.sin(thetas)
     ]).T
     # Generate a 4-pointed star
-    diamond_spikeness = 0.1
+    spikeness = 0.1
     x_size = lattice.control_params.reference_points.max(
         axis=0)[0] - lattice.control_params.reference_points.min(axis=0)[0]
     y_size = lattice.control_params.reference_points.max(
@@ -180,25 +180,25 @@ def run_optimization(weights: jnp.ndarray):
             0, 1, bottom_edge_ids.shape[0]//2+1)[:, None]*jnp.array([0, 1]),
         jnp.linspace(
             1, 0, bottom_edge_ids.shape[0]//2)[:, None]*jnp.array([0, 1]),
-    ], axis=0)*x_size*diamond_spikeness
+    ], axis=0)*x_size*spikeness
     right_points = lattice.control_params.reference_points[right_edge_ids] + jnp.concatenate([
         jnp.linspace(
             0, 1, right_edge_ids.shape[0]//2+1)[:, None]*jnp.array([-1, 0]),
         jnp.linspace(
             1, 0, right_edge_ids.shape[0]//2)[:, None]*jnp.array([-1, 0]),
-    ], axis=0)*y_size*diamond_spikeness
+    ], axis=0)*y_size*spikeness
     top_points = lattice.control_params.reference_points[top_edge_ids] + jnp.concatenate([
         jnp.linspace(
             0, 1, top_edge_ids.shape[0]//2+1)[:, None]*jnp.array([0, -1]),
         jnp.linspace(
             1, 0, top_edge_ids.shape[0]//2)[:, None]*jnp.array([0, -1]),
-    ], axis=0)*x_size*diamond_spikeness
+    ], axis=0)*x_size*spikeness
     left_points = lattice.control_params.reference_points[left_edge_ids] + jnp.concatenate([
         jnp.linspace(
             0, 1, left_edge_ids.shape[0]//2+1)[:, None]*jnp.array([1, 0]),
         jnp.linspace(
             1, 0, left_edge_ids.shape[0]//2)[:, None]*jnp.array([1, 0]),
-    ], axis=0)*y_size*diamond_spikeness
+    ], axis=0)*y_size*spikeness
     target2_points = jnp.concatenate([
         bottom_points,
         right_points,
