@@ -207,9 +207,9 @@ class OptimizationProblem:
 
             # Get current configurations
             shape1_configuration = control_params.reference_points + \
-                solution[target1_temperature_timepoint, 0]
+                solution[self.target1_temperature_timepoint, 0]
             shape2_configuration = control_params.reference_points + \
-                solution[target2_temperature_timepoint, 0]
+                solution[self.target2_temperature_timepoint, 0]
 
             # Scale and center current configurations
             scaled_shape1_configuration = shift_points(
