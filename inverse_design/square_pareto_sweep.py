@@ -9,22 +9,29 @@
 # In[1]:
 
 
+import argparse
 import multiprocessing
 from morphing_lattices.optimization import ForwardProblem, OptimizationProblem
 from morphing_lattices.structure import Lattice, ControlParams
 from morphing_lattices.geometry import triangular_lattice_points, triangular_lattice_connectivity
-from morphing_lattices.plotting import plot_lattice, generate_animation
-from morphing_lattices.utils import save_data, load_data
+from morphing_lattices.utils import save_data
 import pandas as pd
-import numpy as np
 import jax.numpy as jnp
 from jax._src.config import config
 config.update("jax_enable_x64", True)  # enable float64 type
 
 
+parser = argparse.ArgumentParser()
+parser.add_argument("-n1", "--n1", type=int)
+parser.add_argument("-n2", "--n2", type=int)
+parser.add_argument("-nw", "--n_weights", type=int)
+parser.add_argument("-s", "--spikeness", type=float)
+args = parser.parse_args()
+
 # In[2]:
 
-def run_optimization(weights: jnp.ndarray):
+
+def run_optimization(weights: jnp.ndarray, n1: int, n2: int, spikeness: float):
 
     # ## Import experimental material params
 
@@ -102,8 +109,8 @@ def run_optimization(weights: jnp.ndarray):
 
     # In[4]:
 
-    n1 = 30
-    n2 = 30
+    # n1 = 30
+    # n2 = 30
     spacing = 2.9  # mm
     points = triangular_lattice_points(n1=n1, n2=n2, spacing=spacing)
     connectivity, horiz_bonds_even, horiz_bonds_odd, right_lean_even, right_lean_odd, left_lean_even, left_lean_odd = triangular_lattice_connectivity(
@@ -157,48 +164,104 @@ def run_optimization(weights: jnp.ndarray):
         top_edge_ids,
         left_edge_ids,
     ])
-    # lattice.control_params.reference_points[jnp.roll(target_points_ids, -n1-n2//4-1)]
 
-    optimization_name = "circle_4_pointed_star"
-    # Generate points on a circle starting from reference points
-    center = lattice.control_params.reference_points.mean(axis=0)
-    thetas = jnp.arctan2(lattice.control_params.reference_points[target_points_ids, 1] -
-                         center[1], lattice.control_params.reference_points[target_points_ids, 0]-center[0])
-    # thetas = jnp.linspace(thetas[0], thetas[0]+2*jnp.pi, thetas.shape[0])
-    target1_points = jnp.array([
-        center[0] + n1*spacing/2*jnp.cos(thetas),
-        center[1] + n1*spacing/2*jnp.sin(thetas)
-    ]).T
-    # Generate a 4-pointed star
-    spikeness = 0.1
+    # spikeness = 0.1
+    # optimization_name = f"circle_4_pointed_star_spikeness_{spikeness:.2f}_n1_{n1}_n2_{n2}"
+    # # Generate points on a circle starting from reference points
+    # center = lattice.control_params.reference_points.mean(axis=0)
+    # thetas = jnp.arctan2(lattice.control_params.reference_points[target_points_ids, 1] -
+    #                      center[1], lattice.control_params.reference_points[target_points_ids, 0]-center[0])
+    # # thetas = jnp.linspace(thetas[0], thetas[0]+2*jnp.pi, thetas.shape[0])
+    # target1_points = jnp.array([
+    #     center[0] + n1*spacing/2*jnp.cos(thetas),
+    #     center[1] + n1*spacing/2*jnp.sin(thetas)
+    # ]).T
+    # # Generate a 4-pointed star
+    # x_size = lattice.control_params.reference_points.max(
+    #     axis=0)[0] - lattice.control_params.reference_points.min(axis=0)[0]
+    # y_size = lattice.control_params.reference_points.max(
+    #     axis=0)[1] - lattice.control_params.reference_points.min(axis=0)[1]
+    # bottom_points = lattice.control_params.reference_points[bottom_edge_ids] + jnp.concatenate([
+    #     jnp.linspace(
+    #         0, 1, bottom_edge_ids.shape[0]//2+(n1//2) % 2)[:, None]*jnp.array([0, 1]),
+    #     jnp.linspace(
+    #         1, 0, bottom_edge_ids.shape[0]//2)[:, None]*jnp.array([0, 1]),
+    # ], axis=0)*x_size*spikeness
+    # right_points = lattice.control_params.reference_points[right_edge_ids] + jnp.concatenate([
+    #     jnp.linspace(
+    #         0, 1, right_edge_ids.shape[0]//2+1)[:, None]*jnp.array([-1, 0]),
+    #     jnp.linspace(
+    #         1, 0, right_edge_ids.shape[0]//2)[:, None]*jnp.array([-1, 0]),
+    # ], axis=0)*y_size*spikeness
+    # top_points = lattice.control_params.reference_points[top_edge_ids] + jnp.concatenate([
+    #     jnp.linspace(
+    #         0, 1, top_edge_ids.shape[0]//2+(n1//2) % 2)[:, None]*jnp.array([0, -1]),
+    #     jnp.linspace(
+    #         1, 0, top_edge_ids.shape[0]//2)[:, None]*jnp.array([0, -1]),
+    # ], axis=0)*x_size*spikeness
+    # left_points = lattice.control_params.reference_points[left_edge_ids] + jnp.concatenate([
+    #     jnp.linspace(
+    #         0, 1, left_edge_ids.shape[0]//2+1)[:, None]*jnp.array([1, 0]),
+    #     jnp.linspace(
+    #         1, 0, left_edge_ids.shape[0]//2)[:, None]*jnp.array([1, 0]),
+    # ], axis=0)*y_size*spikeness
+    # target2_points = jnp.concatenate([
+    #     bottom_points,
+    #     right_points,
+    #     top_points,
+    #     left_points,
+    # ], axis=0)
+
+    # spikeness = 0.1
+    optimization_name = f"curvy_square_spikeness_{spikeness:.2f}_n1_{n1}_n2_{n2}"
+    # Generate a curvy square 1
     x_size = lattice.control_params.reference_points.max(
         axis=0)[0] - lattice.control_params.reference_points.min(axis=0)[0]
     y_size = lattice.control_params.reference_points.max(
         axis=0)[1] - lattice.control_params.reference_points.min(axis=0)[1]
-    bottom_points = lattice.control_params.reference_points[bottom_edge_ids] + jnp.concatenate([
-        jnp.linspace(
-            0, 1, bottom_edge_ids.shape[0]//2+1)[:, None]*jnp.array([0, 1]),
-        jnp.linspace(
-            1, 0, bottom_edge_ids.shape[0]//2)[:, None]*jnp.array([0, 1]),
-    ], axis=0)*x_size*spikeness
-    right_points = lattice.control_params.reference_points[right_edge_ids] + jnp.concatenate([
-        jnp.linspace(
-            0, 1, right_edge_ids.shape[0]//2+1)[:, None]*jnp.array([-1, 0]),
-        jnp.linspace(
-            1, 0, right_edge_ids.shape[0]//2)[:, None]*jnp.array([-1, 0]),
-    ], axis=0)*y_size*spikeness
-    top_points = lattice.control_params.reference_points[top_edge_ids] + jnp.concatenate([
-        jnp.linspace(
-            0, 1, top_edge_ids.shape[0]//2+1)[:, None]*jnp.array([0, -1]),
-        jnp.linspace(
-            1, 0, top_edge_ids.shape[0]//2)[:, None]*jnp.array([0, -1]),
-    ], axis=0)*x_size*spikeness
-    left_points = lattice.control_params.reference_points[left_edge_ids] + jnp.concatenate([
-        jnp.linspace(
-            0, 1, left_edge_ids.shape[0]//2+1)[:, None]*jnp.array([1, 0]),
-        jnp.linspace(
-            1, 0, left_edge_ids.shape[0]//2)[:, None]*jnp.array([1, 0]),
-    ], axis=0)*y_size*spikeness
+    bottom_points = lattice.control_params.reference_points[bottom_edge_ids] + jnp.array([
+        jnp.zeros(bottom_edge_ids.shape[0]),
+        -jnp.sin(jnp.linspace(0, 2*jnp.pi, bottom_edge_ids.shape[0])),
+    ]).T*spikeness*x_size
+    right_points = lattice.control_params.reference_points[right_edge_ids] + jnp.array([
+        jnp.sin(jnp.linspace(0, 2*jnp.pi, right_edge_ids.shape[0])),
+        jnp.zeros(right_edge_ids.shape[0]),
+    ]).T*spikeness*y_size
+    top_points = lattice.control_params.reference_points[top_edge_ids] + jnp.array([
+        jnp.zeros(top_edge_ids.shape[0]),
+        jnp.sin(jnp.linspace(0, 2*jnp.pi, top_edge_ids.shape[0])),
+    ]).T*spikeness*x_size
+    left_points = lattice.control_params.reference_points[left_edge_ids] + jnp.array([
+        -jnp.sin(jnp.linspace(0, 2*jnp.pi, left_edge_ids.shape[0])),
+        jnp.zeros(left_edge_ids.shape[0]),
+    ]).T*spikeness*y_size
+    target1_points = jnp.concatenate([
+        bottom_points,
+        right_points,
+        top_points,
+        left_points,
+    ], axis=0)
+    # Generate a curvy square 2
+    x_size = lattice.control_params.reference_points.max(
+        axis=0)[0] - lattice.control_params.reference_points.min(axis=0)[0]
+    y_size = lattice.control_params.reference_points.max(
+        axis=0)[1] - lattice.control_params.reference_points.min(axis=0)[1]
+    bottom_points = lattice.control_params.reference_points[bottom_edge_ids] + jnp.array([
+        jnp.zeros(bottom_edge_ids.shape[0]),
+        jnp.sin(jnp.linspace(0, 2*jnp.pi, bottom_edge_ids.shape[0])),
+    ]).T*spikeness*x_size
+    right_points = lattice.control_params.reference_points[right_edge_ids] + jnp.array([
+        -jnp.sin(jnp.linspace(0, 2*jnp.pi, right_edge_ids.shape[0])),
+        jnp.zeros(right_edge_ids.shape[0]),
+    ]).T*spikeness*y_size
+    top_points = lattice.control_params.reference_points[top_edge_ids] + jnp.array([
+        jnp.zeros(top_edge_ids.shape[0]),
+        -jnp.sin(jnp.linspace(0, 2*jnp.pi, top_edge_ids.shape[0])),
+    ]).T*spikeness*x_size
+    left_points = lattice.control_params.reference_points[left_edge_ids] + jnp.array([
+        jnp.sin(jnp.linspace(0, 2*jnp.pi, left_edge_ids.shape[0])),
+        jnp.zeros(left_edge_ids.shape[0]),
+    ]).T*spikeness*y_size
     target2_points = jnp.concatenate([
         bottom_points,
         right_points,
@@ -234,11 +297,16 @@ def run_optimization(weights: jnp.ndarray):
 if __name__ == "__main__":
 
     # Run optimization sweep in parallel
-    n_weights = 11
+    n1 = args.n1
+    n2 = args.n2
+    n_weights = args.n_weights
+    spikeness = args.spikeness
     weights_sweep = jnp.array([
         jnp.linspace(1, 0, n_weights),
         jnp.linspace(0, 1, n_weights),
     ]).T
+    params = [(weights, n1, n2, spikeness) for weights in weights_sweep]
+
     multiprocessing.set_start_method('spawn')
-    with multiprocessing.Pool(processes=n_weights) as pool:
-        pool.map(run_optimization, weights_sweep)
+    with multiprocessing.Pool(processes=8) as pool:
+        pool.starmap(run_optimization, params)
