@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 import dataclasses
 from typing import Any, Callable, List, Optional
-from jax import jit, value_and_grad, flatten_util
+from jax import jit, value_and_grad, flatten_util, vmap
 import jax.numpy as jnp
 import nlopt
 from morphing_lattices.dynamics import setup_dynamic_solver
@@ -97,6 +97,7 @@ class ForwardProblem:
     @staticmethod
     def from_data(problem_data):
         problem_data = ForwardProblem(**problem_data)
+        problem_data.lattice = Lattice(**problem_data.lattice)
         problem_data.is_setup = False
         return problem_data
 
@@ -168,6 +169,7 @@ class OptimizationProblem:
     target_points_ids: jnp.ndarray
     weights: jnp.ndarray = jnp.array([0.5, 0.5])
     objective_values: Optional[List[Any]] = None
+    individual_objective_values: Optional[List[Any]] = None
     design_values: Optional[List[Any]] = None
     best_response: Optional[jnp.ndarray] = None
     best_control_params: Optional[ControlParams] = None
@@ -179,6 +181,8 @@ class OptimizationProblem:
     def __post_init__(self):
         self.objective_values = [] if self.objective_values is None else self.objective_values
         self.design_values = [] if self.design_values is None else self.design_values
+        self.individual_objective_values = [
+        ] if self.individual_objective_values is None else self.individual_objective_values
 
     def setup_objective(self) -> None:
         """
@@ -196,8 +200,36 @@ class OptimizationProblem:
             self.forward_problem.timepoints) - self.target1_temperature))
         self.target2_temperature_timepoint = jnp.argmin(jnp.abs(self.forward_problem.temperature_fn(
             self.forward_problem.timepoints) - self.target2_temperature))
-        
-        def distance_from_target_shape(phase: jnp.ndarray):
+
+        def distances_from_target_shapes(phase: jnp.ndarray):
+            # Solve forward
+            solution, control_params = self.forward_problem.solve(phase)
+
+            # Get current configurations
+            shape1_configuration = control_params.reference_points + \
+                solution[target1_temperature_timepoint, 0]
+            shape2_configuration = control_params.reference_points + \
+                solution[target2_temperature_timepoint, 0]
+
+            # Scale and center current configurations
+            scaled_shape1_configuration = shift_points(
+                scale_points(shape1_configuration[self.target_points_ids])
+            )
+            scaled_shape2_configuration = shift_points(
+                scale_points(shape2_configuration[self.target_points_ids])
+            )
+
+            # Calculate the difference
+            shape1_diff = jnp.sum(
+                (scaled_shape1_configuration - scaled_target1_points)**2
+            )**0.5
+            shape2_diff = jnp.sum(
+                (scaled_shape2_configuration - scaled_target2_points)**2
+            )**0.5
+
+            return jnp.array([shape1_diff, shape2_diff])
+
+        def distance_from_target_shapes(phase: jnp.ndarray):
 
             # Solve forward
             solution, control_params = self.forward_problem.solve(phase)
@@ -219,14 +251,15 @@ class OptimizationProblem:
             # Calculate the difference
             shape1_diff = self.weights[0] * jnp.sum(
                 (scaled_shape1_configuration - scaled_target1_points)**2
-            )
+            )**0.5
             shape2_diff = self.weights[1] * jnp.sum(
                 (scaled_shape2_configuration - scaled_target2_points)**2
-            )
+            )**0.5
 
             return shape1_diff+shape2_diff
 
-        self.objective_fn = distance_from_target_shape
+        self.objective_fn = distance_from_target_shapes
+        self.objective_fn_individual = jit(distances_from_target_shapes)
         self.is_setup = True
 
     def run_optimization_nlopt(
@@ -278,6 +311,8 @@ class OptimizationProblem:
 
         # Store forward solution data for the last design
         self.compute_best_response()
+        # Store individual objective values
+        self.compute_individual_objective_values()
 
     def compute_best_response(self):
 
@@ -292,6 +327,19 @@ class OptimizationProblem:
         )
 
         return self.best_response, self.best_control_params
+
+    def compute_individual_objective_values(self):
+
+        if len(self.design_values) == 0:
+            raise ValueError("No design has been optimized yet.")
+
+        # Make sure forward solvers are set up
+        assert self.forward_problem.is_setup, "Forward problem is not set up. Call self.forward_problem.setup() first."
+
+        self.individual_objective_values = vmap(
+            self.objective_fn_individual)(jnp.array(self.design_values))
+
+        return self.individual_objective_values
 
     @staticmethod
     def from_data(optimization_data):
