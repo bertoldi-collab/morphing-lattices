@@ -52,20 +52,28 @@ def plot_lattice(lattice: Lattice, displacement=None, xlim=None, ylim=None, titl
         for i, pair in enumerate(connectivity):
             if i in LTNI_bond_indices:
                 if cntr_LTNI == 0:
+                    # ax.plot(
+                    #     *points[pair].T, lw=2, color="#069AF3" if colors is None else colors[i], label='LTNI')
                     ax.plot(
-                        *points[pair].T, lw=2, color='#069AF3' if colors is None else colors[i], label='LTNI')
+                        *points[pair].T, lw=2, color="#069AF3", label='LTNI')
                     cntr_LTNI = cntr_LTNI+1
                 else:
+                    # ax.plot(
+                    #     *points[pair].T, lw=2, color="#069AF3" if colors is None else colors[i])
                     ax.plot(
-                        *points[pair].T, lw=2, color='#069AF3' if colors is None else colors[i])
+                        *points[pair].T, lw=2, color="#069AF3")
             elif i in HTNI_bond_indices:
                 if cntr_HTNI == 0:
+                    # ax.plot(
+                    #     *points[pair].T, lw=2, color="#F97306" if colors is None else colors[i], label='HTNI')
                     ax.plot(
-                        *points[pair].T, lw=2, color="#F97306" if colors is None else colors[i], label='HTNI')
+                        *points[pair].T, lw=2, color="#F97306", label='HTNI')
                     cntr_HTNI = cntr_HTNI+1
                 else:
+                    # ax.plot(
+                    #     *points[pair].T, lw=2, color="#F97306" if colors is None else colors[i])
                     ax.plot(
-                        *points[pair].T, lw=2, color="#F97306" if colors is None else colors[i])
+                        *points[pair].T, lw=2, color="#F97306")
 
         ax.legend()
     else:
