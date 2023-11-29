@@ -10,7 +10,7 @@ from morphing_lattices.kinematics import rotation_matrix
 import jax.numpy as jnp
 
 
-def plot_lattice(lattice: Lattice, displacement=None, xlim=None, ylim=None, title="Lattice", x_label=None, y_label=None, figsize=(5, 5), annotate=False, bond_values=None, bond_color=None, legend_labels=None, legend_colors=None, LTNI_bond_indices=None, HTNI_bond_indices=None, node_size=None, legend_label=None, fontsize=14, cmap="coolwarm", axis=True):
+def plot_lattice(lattice: Lattice, displacement=None, xlim=None, ylim=None, title="Lattice", x_label=None, y_label=None, figsize=(5, 5), annotate=False, bond_values=None, bond_color=None, legend_labels=None, legend_colors=None, LTNI_bond_indices=None, HTNI_bond_indices=None, node_size=None, legend_label=None, fontsize=14, cmap="coolwarm", axis=True, grid=True):
     points = lattice.control_params.reference_points if displacement is None else displacement + \
         lattice.control_params.reference_points
     connectivity = lattice.connectivity
@@ -26,6 +26,8 @@ def plot_lattice(lattice: Lattice, displacement=None, xlim=None, ylim=None, titl
     ax.tick_params(labelsize=0.8*fontsize)
     if not axis:
         ax.axis("off")
+    if not grid:
+        ax.grid(False)
 
     # Plot nodes
     ax.scatter(points[:, 0], points[:, 1],
@@ -101,7 +103,7 @@ def plot_lattice(lattice: Lattice, displacement=None, xlim=None, ylim=None, titl
     return fig, ax
 
 
-def generate_animation(lattice: Lattice, solution: jnp.ndarray, lattice_number=None, out_filename=None, rotated_points=False, frame_range=None, figsize=None, xlim=None, ylim=None, fps=20, dpi=200, title=None, x_label=None, y_label=None, legend_label=None, bond_values=None, bond_color=None, legend_labels=None, legend_colors=None, node_size=None, fontsize=14, cmap="coolwarm", axis=True):
+def generate_animation(lattice: Lattice, solution: jnp.ndarray, lattice_number=None, out_filename=None, rotated_points=False, frame_range=None, figsize=None, xlim=None, ylim=None, fps=20, dpi=200, title=None, x_label=None, y_label=None, legend_label=None, bond_values=None, bond_color=None, legend_labels=None, legend_colors=None, node_size=None, fontsize=14, cmap="coolwarm", axis=True, grid=True, target_points=None, target_color="black", target_node_size=5):
 
     tick_size = 0.8*fontsize
     # Plot the lattice
@@ -116,6 +118,8 @@ def generate_animation(lattice: Lattice, solution: jnp.ndarray, lattice_number=N
     ax.tick_params(labelsize=tick_size)
     if not axis:
         ax.axis("off")
+    if not grid:
+        ax.grid(False)
 
     if lattice_number is not None:
         ax.add_patch(matplotlib.patches.Rectangle((xlim[0], ylim[0]+0.9*(ylim[1] - ylim[0])), 0.0*(
@@ -173,6 +177,21 @@ def generate_animation(lattice: Lattice, solution: jnp.ndarray, lattice_number=N
                         for i in range(len(legend_labels))]
         ax.legend(custom_lines, legend_labels,
                   fontsize=fontsize, loc="upper right")
+
+    # Add target points
+    if target_points is not None:
+        if type(target_points) == list or type(target_points) == tuple:
+            target_color = [target_color]*len(target_points) if type(
+                target_color) != list and type(target_color) != tuple else target_color
+            for points, color in zip(target_points, target_color):
+                points = jnp.concatenate([points, points[0, None]], axis=0)
+                ax.plot(points[:, 0], points[:, 1], "-o",
+                        color=color, zorder=20, markersize=target_node_size, lw=2)
+        else:
+            target_points = jnp.concatenate(
+                [target_points, target_points[0, None]], axis=0)
+            ax.plot(target_points[:, 0], target_points[:, 1], "-o",
+                    color=target_color, zorder=20, markersize=target_node_size, lw=2)
 
     def animate(i):
         # Update nodes
