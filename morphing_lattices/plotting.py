@@ -10,7 +10,7 @@ from morphing_lattices.kinematics import rotation_matrix
 import jax.numpy as jnp
 
 
-def plot_lattice(lattice: Lattice, displacement=None, xlim=None, ylim=None, title="Lattice", x_label=None, y_label=None, figsize=(5, 5), annotate=False, bond_values=None, bond_color=None, legend_labels=None, legend_colors=None, LTNI_bond_indices=None, HTNI_bond_indices=None, node_size=None, legend_label=None, fontsize=14, cmap="coolwarm", axis=True, grid=True):
+def plot_lattice(lattice: Lattice, displacement=None, xlim=None, ylim=None, title="Lattice", x_label=None, y_label=None, figsize=(5, 5), annotate=False, bond_values=None, bond_color=None, legend_labels=None, legend_colors=None, LTNI_bond_indices=None, HTNI_bond_indices=None, node_size=None, legend_label=None, fontsize=14, cmap="coolwarm", axis=True, grid=True, lattice_line_width=2,):
     points = lattice.control_params.reference_points if displacement is None else displacement + \
         lattice.control_params.reference_points
     connectivity = lattice.connectivity
@@ -80,11 +80,11 @@ def plot_lattice(lattice: Lattice, displacement=None, xlim=None, ylim=None, titl
         ax.legend()
     else:
         collection_bonds = LineCollection(
-            points[connectivity], color=colors, linewidth=2)
+            points[connectivity], color=colors, linewidth=lattice_line_width)
         ax.add_collection(collection_bonds)
         # Add legend
         if legend_labels is not None and legend_colors is not None:
-            custom_lines = [Line2D([0], [0], color=legend_colors[i], lw=2)
+            custom_lines = [Line2D([0], [0], color=legend_colors[i], lw=lattice_line_width)
                             for i in range(len(legend_labels))]
             ax.legend(custom_lines, legend_labels,
                       fontsize=fontsize, loc="upper right")
@@ -103,7 +103,7 @@ def plot_lattice(lattice: Lattice, displacement=None, xlim=None, ylim=None, titl
     return fig, ax
 
 
-def generate_animation(lattice: Lattice, solution: jnp.ndarray, lattice_number=None, out_filename=None, rotated_points=False, frame_range=None, figsize=None, xlim=None, ylim=None, fps=20, dpi=200, title=None, x_label=None, y_label=None, legend_label=None, bond_values=None, bond_color=None, legend_labels=None, legend_colors=None, node_size=None, fontsize=14, cmap="coolwarm", axis=True, grid=True, target_points=None, target_color="black", target_node_size=5):
+def generate_animation(lattice: Lattice, solution: jnp.ndarray, lattice_number=None, out_filename=None, rotated_points=False, frame_range=None, figsize=None, xlim=None, ylim=None, fps=20, dpi=200, title=None, x_label=None, y_label=None, legend_label=None, bond_values=None, bond_color=None, legend_labels=None, legend_colors=None, node_size=None, fontsize=14, cmap="coolwarm", axis=True, grid=True, lattice_line_width=2, target_points=None, target_color="black", target_node_size=5, target_line_width=2):
 
     tick_size = 0.8*fontsize
     # Plot the lattice
@@ -146,7 +146,7 @@ def generate_animation(lattice: Lattice, solution: jnp.ndarray, lattice_number=N
 
     # Bonds
     collection_bonds = LineCollection(
-        points[connectivity], color="black", linewidth=2)
+        points[connectivity], color="black", linewidth=lattice_line_width)
     ax.add_collection(collection_bonds)
     if bond_color is not None:
         # Color the bonds with a single color
@@ -173,7 +173,7 @@ def generate_animation(lattice: Lattice, solution: jnp.ndarray, lattice_number=N
 
     # Add legend
     if legend_labels is not None and legend_colors is not None:
-        custom_lines = [Line2D([0], [0], color=legend_colors[i], lw=2)
+        custom_lines = [Line2D([0], [0], color=legend_colors[i], lw=lattice_line_width)
                         for i in range(len(legend_labels))]
         ax.legend(custom_lines, legend_labels,
                   fontsize=fontsize, loc="upper right")
@@ -186,12 +186,12 @@ def generate_animation(lattice: Lattice, solution: jnp.ndarray, lattice_number=N
             for points, color in zip(target_points, target_color):
                 points = jnp.concatenate([points, points[0, None]], axis=0)
                 ax.plot(points[:, 0], points[:, 1], "-o",
-                        color=color, zorder=20, markersize=target_node_size, lw=2)
+                        color=color, zorder=20, markersize=target_node_size, lw=target_line_width)
         else:
             target_points = jnp.concatenate(
                 [target_points, target_points[0, None]], axis=0)
             ax.plot(target_points[:, 0], target_points[:, 1], "-o",
-                    color=target_color, zorder=20, markersize=target_node_size, lw=2)
+                    color=target_color, zorder=20, markersize=target_node_size, lw=target_line_width)
 
     def animate(i):
         # Update nodes
