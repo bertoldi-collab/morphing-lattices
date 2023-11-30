@@ -2,7 +2,7 @@
 
 ![Made with Python](https://img.shields.io/badge/Made%20with-Python-blue?logo=python&logoColor=ecf0f1&labelColor=34495e)
 
-Simulation and design of shape morphing LCE lattices
+Simulation and design of shape-morphing LCE lattices
 
 <p float="center">
   <img src="inverse_design/circle_4_pointed_star_spikeness_0.10_n1_16_n2_18/pareto/weights_0.93_0.07_best/discrete_animation_with_targets_temperature.gif" width="48%" />
