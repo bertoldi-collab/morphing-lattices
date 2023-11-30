@@ -4,6 +4,11 @@
 
 Simulation and design of shape morphing LCE lattices
 
+<p float="center">
+  <img src="inverse_design/circle_4_pointed_star_spikeness_0.10_n1_16_n2_18/pareto/weights_0.93_0.07_best/discrete_animation_with_targets_temperature.gif" width="48%" />
+  <img src="inverse_design/curvy_square_spikeness_0.10_n1_16_n2_18/pareto/weights_0.43_0.57_best/discrete_animation_with_targets_temperature.gif" width="48%" />
+</p>
+
 ## Installation
 
 Assuming you have access to the repo and ssh keys are set up in your GitHub account, you can install the package with
