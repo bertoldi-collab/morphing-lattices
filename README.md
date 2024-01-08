@@ -19,20 +19,6 @@ pip install git+ssh://git@github.com/bertoldi-collab/morphing-lattices.git@main
 
 ## Dev notes
 
-<details>
-<summary>
-No experience with Python and/or git? Open this :point_down:
-</summary>
-
-Go ahead with the following steps and you will learn along the way.
-
-- Install [git](https://git-scm.com/downloads) and [learn a bit about it](https://youtu.be/RGOj5yH7evk).
-- If you don't have a favorite IDE yet, install [vscode](https://code.visualstudio.com/) (this is just an environment that helps you writing code as well as managing git repositories).
-- Install [Python](https://www.python.org/downloads/windows/) (any version above 3.7 should work fine).
-- Follow the rest of the installation instructions below.
-
-</details>
-
 ### Installation (with poetry)
 
 The dependency management of the project is done via [poetry](https://python-poetry.org/docs/).
