@@ -55,7 +55,7 @@ To get started
 If you use this code in your research, please cite the related [paper](https://doi.org/10.1002/adma.202310743):
 
 ```bibtex
-@article{kotikian_2023,
+@article{kotikian_2024,
   title = {Liquid Crystal Elastomer Lattices with Thermally Programmable Deformation via Multi-Material 3D Printing},
   author = {Kotikian, Arda and Watkins, Audrey A. and Bordiga, Giovanni and Spielberg, Andrew and Davidson, Zoey S. and Bertoldi, Katia and Lewis, Jennifer A.},
   journal = {Advanced Materials},
