@@ -9,6 +9,11 @@ Simulation and design of shape-morphing LCE lattices
   <img src="inverse_design/curvy_square_spikeness_0.10_n1_16_n2_18/pareto/weights_0.43_0.57_best/discrete_animation_with_targets_temperature.gif" width="48%" />
 </p>
 
+## Paper
+
+This repository contains all the code developed for the paper:
+[A. Kotikian, A. A. Watkins, G. Bordiga, A. Spielberg, Z. S. Davidson, K. Bertoldi, J. A. Lewis, Liquid Crystal Elastomer Lattices with Thermally Programmable Deformation via Multi-Material 3D Printing. _Adv. Mater._ 2024, 2310743.](https://doi.org/10.1002/adma.202310743)
+
 ## Installation
 
 Assuming you have access to the repo and ssh keys are set up in your GitHub account, you can install the package with
@@ -18,6 +23,9 @@ pip install git+ssh://git@github.com/bertoldi-collab/morphing-lattices.git@main
 ```
 
 ## Dev notes
+
+<details>
+<summary><b>Other ways to install</b></summary>
 
 ### Installation (with poetry)
 
@@ -39,3 +47,23 @@ To get started
 
 - Clone the repo
 - `cd` into the root directory and run `pip install -e .`
+
+</details>
+
+## How to cite
+
+If you use this code in your research, please cite the related [paper](https://doi.org/10.1002/adma.202310743):
+
+```bibtex
+@article{kotikian_2023,
+  title = {Liquid Crystal Elastomer Lattices with Thermally Programmable Deformation via Multi-Material 3D Printing},
+  author = {Kotikian, Arda and Watkins, Audrey A. and Bordiga, Giovanni and Spielberg, Andrew and Davidson, Zoey S. and Bertoldi, Katia and Lewis, Jennifer A.},
+  journal = {Advanced Materials},
+  volume = {TBD},
+  number = {TBD},
+  pages = {2310743},
+  year = {2024},
+  doi = {https://doi.org/10.1002/adma.202310743},
+  publisher = {Wiley Online Library}
+}
+```
