@@ -1,6 +1,8 @@
 # Morphing lattices
 
 ![Made with Python](https://img.shields.io/badge/Made%20with-Python-blue?logo=python&logoColor=ecf0f1&labelColor=34495e)
+[![](https://img.shields.io/badge/Paper-10.1002/adma.202310743-blue?logoColor=ecf0f1&labelColor=34495e)](https://doi.org/10.1002/adma.202310743)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.10499196.svg)](https://doi.org/10.5281/zenodo.10499196)
 
 Simulation and design of shape-morphing LCE lattices
 
