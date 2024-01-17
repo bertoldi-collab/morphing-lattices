@@ -2,7 +2,7 @@
 
 ![Made with Python](https://img.shields.io/badge/Made%20with-Python-blue?logo=python&logoColor=ecf0f1&labelColor=34495e)
 [![](https://img.shields.io/badge/Paper-10.1002/adma.202310743-blue?logoColor=ecf0f1&labelColor=34495e)](https://doi.org/10.1002/adma.202310743)
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.10499196.svg)](https://doi.org/10.5281/zenodo.10499196)
+[![DOI](https://img.shields.io/badge/Zenodo-10.5281/zenodo.10499196-blue?logoColor=ecf0f1&labelColor=34495e)](https://doi.org/10.5281/zenodo.10499196)
 [![Hits](https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https%3A%2F%2Fgithub.com%2Fbertoldi-collab%2Fmorphing-lattices&count_bg=%2327AE60&title_bg=%2334495E&icon=github.svg&icon_color=%23E7E7E7&title=Hits&edge_flat=false)](https://hits.seeyoufarm.com)
 
 Simulation and design of shape-morphing LCE lattices
