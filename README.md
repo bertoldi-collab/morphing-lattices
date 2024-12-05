@@ -16,7 +16,8 @@ Simulation and design of shape-morphing LCE lattices
 ## Paper
 
 This repository contains all the code developed for the paper:
-[A. Kotikian, A. A. Watkins, G. Bordiga, A. Spielberg, Z. S. Davidson, K. Bertoldi, J. A. Lewis, Liquid Crystal Elastomer Lattices with Thermally Programmable Deformation via Multi-Material 3D Printing. _Adv. Mater._ 2024, 2310743.](https://doi.org/10.1002/adma.202310743)
+
+> [A. Kotikian, A. A. Watkins, G. Bordiga, A. Spielberg, Z. S. Davidson, K. Bertoldi, J. A. Lewis, Liquid Crystal Elastomer Lattices with Thermally Programmable Deformation via Multi-Material 3D Printing. _Adv. Mater._ 2024, 2310743.](https://doi.org/10.1002/adma.202310743)
 
 ## Installation
 
